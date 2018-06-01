@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gorilla/mux"
 )
 
 var addr = flag.String("addr", ":8000", "http service address")
@@ -24,26 +26,33 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	http.ServeFile(w, r, "./home.html")
+	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	http.ServeFile(w, r, "home.html")
 
 }
 
 func main() {
-
-	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-
-	fmt.Println(dir)
 
 	flag.Parse()
 
 	hub := newHub()
 	go hub.run()
 
-	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	fmt.Println(dir)
+
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", serveHome)
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 
 	})
+
+	http.Handle("/", r)
+
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
