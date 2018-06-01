@@ -26,9 +26,11 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 
-	http.ServeFile(w, r, "home.html")
+	http.ServeFile(w, r, dir+"/home.html")
+
+	fmt.Println(dir + "/home.html")
 
 }
 
@@ -38,10 +40,6 @@ func main() {
 
 	hub := newHub()
 	go hub.run()
-
-	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-
-	fmt.Println(dir)
 
 	r := mux.NewRouter()
 
