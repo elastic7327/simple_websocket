@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-MAINTAINER Daniel <dan@fastcall.co.kr>
+MAINTAINER Daniel <elastic7327@gmail.com>
 
 USER root
 
