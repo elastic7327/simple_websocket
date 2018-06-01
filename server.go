@@ -1,64 +1,44 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
-	"github.com/labstack/echo"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
+var addr = flag.String("addr", ":8000", "http service address")
 
-		},
-	}
-)
-
-func hello(c echo.Context) error {
-
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-
-	if err != nil {
-		return err
-	}
-
-	defer ws.Close()
-
-	for {
-		// Write
-		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
-
-		if err != nil {
-			c.Logger().Error(err)
-		}
-
-		// Read
-		_, msg, err := ws.ReadMessage()
-
-		if err != nil {
-			c.Logger().Error(err)
-		}
-
-		fmt.Println(msg)
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
 
 	}
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+
+	}
+	http.ServeFile(w, r, "home.html")
 
 }
 
 func main() {
 
-	e := echo.New()
+	flag.Parse()
 
-	// e.Use(mw.Logger())
-	// e.Use(mw.Recover())
+	hub := newHub()
+	go hub.run()
 
-	e.Static("/", "../public")
-	e.GET("/ws", hello)
-	e.Logger.Fatal(e.Start(":1323"))
+	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/ws/1", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(hub, w, r)
 
+	})
+	err := http.ListenAndServe(*addr, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+
+	}
 }
