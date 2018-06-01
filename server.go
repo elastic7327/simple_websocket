@@ -2,8 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 var addr = flag.String("addr", ":8000", "http service address")
@@ -20,11 +23,16 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	http.ServeFile(w, r, "home.html")
+
+	http.ServeFile(w, r, "./home.html")
 
 }
 
 func main() {
+
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	fmt.Println(dir)
 
 	flag.Parse()
 
@@ -32,7 +40,7 @@ func main() {
 	go hub.run()
 
 	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws/1", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 
 	})

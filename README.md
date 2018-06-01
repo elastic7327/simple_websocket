@@ -19,3 +19,13 @@ ws.onopen = function() {
 
 
 ```
+
+
+```
+CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' server.go client.go hub.go
+```
+
+```
+docker build --tag simple_websocket:0.0.1 .
+
+```
